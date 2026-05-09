@@ -1,4 +1,11 @@
 {
     "C_Cpp.default.compileCommands": "/workspaces/similarity-search-engine/builddir/compile_commands.json",
-    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "chat.tools.terminal.autoApprove": {
+        "meson": true,
+        "/^cd /workspaces/similarity-search-engine && python3 - <<'PY'\nfrom pathlib import Path\nimport re\npath = Path\\('data/roteiro matrix\\.txt'\\)\ntext = path\\.read_text\\(encoding='utf-8'\\)\nlines = text\\.splitlines\\(\\)\nkeep = \\[\\]\nfor line in lines:\n    stripped = line\\.strip\\(\\)\n    if not stripped:\n        keep\\.append\\(line\\)\n        continue\n    if re\\.fullmatch\\(r'\\\\\\(CONTINUED\\\\\\)', stripped\\):\n        continue\n    if re\\.fullmatch\\(r'CONTINUED', stripped\\):\n        continue\n    if re\\.fullmatch\\(r'\\[0-9\\]\\+\\\\\\.', stripped\\):\n        continue\n    if re\\.fullmatch\\(r'\\[0-9\\]\\+', stripped\\):\n        continue\n    if re\\.fullmatch\\(r'\\[0-9\\]\\+ CONTINUED:\\.\\*', stripped\\):\n        continue\n    if 'THE MATRIX - Rev\\.' in stripped:\n        continue\n    keep\\.append\\(line\\)\npath\\.write_text\\('\\\\n'\\.join\\(keep\\) \\+ '\\\\n', encoding='utf-8'\\)\nprint\\('cleaned', len\\(lines\\), '->', len\\(keep\\), 'lines'\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
 }

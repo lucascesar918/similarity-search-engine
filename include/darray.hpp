@@ -35,7 +35,31 @@ class DArray {
             return this->data[index];
         }
 
-        ~DArray() { delete[] this->data; }
+        DArray(const DArray& other) {
+            this->capacity = other.capacity;
+            this->size = other.size;
+            this->data = new T[this->capacity];
+            for (size_t i = 0; i < this->size; i++) {
+                this->data[i] = other.data[i];
+            }
+        }
+
+        DArray& operator=(const DArray& other) {
+            if (this != &other) {
+                delete[] this->data;
+                this->capacity = other.capacity;
+                this->size = other.size;
+                this->data = new T[this->capacity];
+                for (size_t i = 0; i < this->size; i++) {
+                    this->data[i] = other.data[i];
+                }
+            }
+            return *this;
+        }
+
+        ~DArray() {
+            delete[] this->data;
+        }
 
         bool empty() { return this->size == 0; }
 
@@ -48,4 +72,5 @@ class DArray {
         T* end() { return this->data + this->size; }
         const T* begin() const { return this->data; }
         const T* end() const { return this->data + this->size; }
+        void clear() { this->size = 0; }
     };
