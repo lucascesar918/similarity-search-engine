@@ -8,8 +8,7 @@ inc_dir = include_directories('include')
 src_files = [
     'src/main.cpp',
     'src/etl.cpp',
-    'src/motor.cpp',
-    'src/estruturas/llist.cpp'
+    'src/engine.cpp'
 ]
 
 executable('search-engine',
