@@ -4,36 +4,39 @@
 #include "etl.hpp"
 #include "darray.hpp"
 #include "htable.hpp"
+#include "queue.hpp"
+#include "dstack.hpp"
+#include "sparse_list.hpp"
+#include "bst.hpp"
 
 class Engine {
     private:
         struct Document {
             std::string path;
-            HTable<std::string> tokenTable;
-            size_t tokenCount;
+            SparseList terms;
 
-            Document()
-                : path(), tokenTable(16), tokenCount(0) {}
+            Document() : path() {}
+            explicit Document(const std::string& path) : path(path) {}
 
-            Document(const std::string& path, size_t hashCapacity)
-                : path(path), tokenTable(hashCapacity), tokenCount(0) {}
-
-            void addToken(const std::string& token) {
-                if (!tokenTable.find(token)) {
-                    tokenTable.insert(token);
-                    tokenCount++;
-                }
+            void addTerm(size_t termId) {
+                terms.add(termId);
             }
 
-            bool contains(const std::string& token) const {
-                return tokenTable.find(token);
+            int scoreWith(const SparseList& query) const {
+                return terms.dotProduct(query);
             }
         };
 
         const std::string dataPath;
         int totalDocs;
-        ETL dataPipeline;
+        HTable<std::string, size_t> dictionary;
+        DArray<std::string> reverseDictionary;
+        DQueue<std::string> fileQueue;
+        DStack<std::string> history;
         DArray<Document> documents;
+
+        size_t getTermId(const std::string& token);
+        void indexDocument(const std::string& path, const DArray<std::string>& tokens);
 
     public:
         Engine();

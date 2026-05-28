@@ -4,10 +4,31 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include <string>
 
 Engine::Engine()
-    : dataPath("data/"), totalDocs(0) {
+    : dataPath("data/"), totalDocs(0), dictionary(32), reverseDictionary(), fileQueue(), history(), documents() {
+}
+
+size_t Engine::getTermId(const std::string& token) {
+    size_t* existing = dictionary.find(token);
+    if (existing) {
+        return *existing;
+    }
+
+    size_t newId = reverseDictionary.getSize() + 1;
+    dictionary.insert(token, newId);
+    reverseDictionary.append(token);
+    return newId;
+}
+
+void Engine::indexDocument(const std::string& path, const DArray<std::string>& tokens) {
+    Document doc(path);
+    for (size_t i = 0; i < tokens.getSize(); i++) {
+        size_t termId = getTermId(tokens[i]);
+        doc.addTerm(termId);
+    }
+    documents.append(doc);
 }
 
 void Engine::loadData() {
@@ -15,17 +36,28 @@ void Engine::loadData() {
 
     documents.clear();
     totalDocs = 0;
+    dictionary = HTable<std::string, size_t>(32);
+    reverseDictionary.clear();
+    history.clear();
+    fileQueue.clear();
 
     if (!fs::exists(dataPath) || !fs::is_directory(dataPath)) {
-        std::cerr << "[!] Diretório de dados não encontrado: " << dataPath << '\n';
+        std::cerr << "[!] Diretório de dados não encontrado: " << dataPath << "\n";
         return;
     }
 
     for (const auto& entry : fs::directory_iterator(dataPath)) {
         if (!entry.is_regular_file()) continue;
+        fileQueue.enqueue(entry.path().string());
+    }
 
-        std::ifstream input(entry.path());
-        if (!input.is_open()) continue;
+    while (!fileQueue.empty()) {
+        std::string path = fileQueue.dequeue();
+        std::ifstream input(path);
+        if (!input.is_open()) {
+            std::cerr << "[!] Não foi possível abrir " << path << "\n";
+            continue;
+        }
 
         std::string content;
         std::string line;
@@ -34,14 +66,16 @@ void Engine::loadData() {
             content += '\n';
         }
 
+        history.push(content);
         DArray<std::string> tokens = ETL::tokenize(content);
-        Engine::Document doc(entry.path().string(), std::max<size_t>(tokens.getSize() * 2 + 1, 16));
-
+        std::string tokenList;
         for (size_t i = 0; i < tokens.getSize(); i++) {
-            doc.addToken(tokens[i]);
+            if (i > 0) tokenList += ' ';
+            tokenList += tokens[i];
         }
+        history.push(tokenList);
 
-        documents.append(doc);
+        indexDocument(path, tokens);
         totalDocs++;
     }
 
@@ -55,41 +89,40 @@ void Engine::search(const std::string& query) {
         return;
     }
 
-    HTable<std::string> queryTable(std::max<size_t>(queryTokens.getSize() * 2 + 1, 16));
+    SparseList queryVector;
     for (size_t i = 0; i < queryTokens.getSize(); i++) {
-        queryTable.insert(queryTokens[i]);
+        const std::string& token = queryTokens[i];
+        size_t* id = dictionary.find(token);
+        if (id) {
+            queryVector.add(*id);
+        }
     }
 
-    std::vector<std::pair<double, std::string>> results;
-    results.reserve(totalDocs);
+    if (queryVector.empty()) {
+        std::cout << "[!] Nenhum termo conhecido encontrado na busca." << std::endl;
+        return;
+    }
 
+    BST results;
     for (size_t i = 0; i < documents.getSize(); i++) {
         const Document& doc = documents[i];
-        size_t intersection = 0;
-
-        for (size_t j = 0; j < queryTokens.getSize(); j++) {
-            if (doc.contains(queryTokens[j])) {
-                intersection++;
-            }
+        int score = doc.scoreWith(queryVector);
+        if (score > 0) {
+            results.insert(i, score);
         }
-
-        if (intersection == 0) continue;
-
-        double score = static_cast<double>(intersection) / static_cast<double>(queryTokens.getSize());
-        results.emplace_back(score, doc.path);
     }
 
-    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
-        return a.first > b.first;
-    });
+    DArray<SearchResult> ordered;
+    results.collectResults(ordered);
 
     std::cout << "[!] Resultados de similaridade para: " << query << std::endl;
-    if (results.empty()) {
+    if (ordered.empty()) {
         std::cout << "  Nenhum documento similar encontrado." << std::endl;
         return;
     }
 
-    for (size_t i = 0; i < std::min<size_t>(results.size(), 10); i++) {
-        std::cout << "  " << (i + 1) << ". " << results[i].second << " (score=" << results[i].first << ")" << std::endl;
+    for (size_t i = 0; i < std::min<size_t>(ordered.getSize(), 10); i++) {
+        const SearchResult& result = ordered[i];
+        std::cout << "  " << (i + 1) << ". " << documents[result.documentIndex].path << " (score=" << result.score << ")" << std::endl;
     }
 }

@@ -1,37 +1,75 @@
 #pragma once
 
-template <typename T>
-struct Node {
-    T value;
-    Node<T>* next;
-};
+#include <cstddef>
+#include <stdexcept>
 
 template <typename T>
 class DList {
-    private:
-        Node<T>* head;
-        Node<T>* tail;
-        size_t size;
-    public:
-        DList() {
-            this.head = nullptr;
-            this.tail = nullptr;
-            this.size = 0;
+    struct Node {
+        T value;
+        Node* next;
+    };
+
+    Node* sentinel;
+    Node* tail;
+    size_t listSize;
+
+public:
+    DList()
+        : sentinel(new Node{T(), nullptr}), tail(nullptr), listSize(0) {
+        sentinel->next = sentinel;
+    }
+
+    ~DList() {
+        clear();
+        delete sentinel;
+    }
+
+    void append(const T& item) {
+        Node* node = new Node{item, sentinel};
+        if (tail) {
+            tail->next = node;
+        } else {
+            sentinel->next = node;
         }
+        tail = node;
+        listSize++;
+    }
 
-        void append(T item) {
-            Node<T>* newNode = new Node<T>;
-            newNode->value = item;
-            newNode->next = nullptr;
-            if (this.tail) this.tail->next = newNode;
-            else this.head = newNode;
-            
-            this.tail = newNode;
-            this.size++;
+    bool contains(const T& item) const {
+        Node* current = sentinel->next;
+        while (current != sentinel) {
+            if (current->value == item) return true;
+            current = current->next;
         }
+        return false;
+    }
 
-        size_t getSize() { return this.size; }
+    size_t getSize() const {
+        return listSize;
+    }
 
-        Node<T>* getHead() { return this.head; }
-        Node<T>* getTail() { return this.tail; }
+    bool empty() const {
+        return listSize == 0;
+    }
+
+    void clear() {
+        Node* current = sentinel->next;
+        while (current != sentinel) {
+            Node* next = current->next;
+            delete current;
+            current = next;
+        }
+        sentinel->next = sentinel;
+        tail = nullptr;
+        listSize = 0;
+    }
+
+    Node* getHead() const {
+        return sentinel->next == sentinel ? nullptr : sentinel->next;
+    }
+
+    Node* getTail() const {
+        return tail;
+    }
 };

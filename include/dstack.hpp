@@ -1,33 +1,65 @@
 #pragma once
 
-template <typename T>
-struct Node {
-    T value;
-    Node<T>* next;
-};
+#include <cstddef>
+#include <stdexcept>
 
 template <typename T>
 class DStack {
-    private:
-        Node<T>* top;
-        size_t size;
+    struct StackNode {
+        T value;
+        StackNode* next;
+    };
 
-    public:
-        DStack() {
-            this.top = nullptr;
-            this.size = 0;
-        }
+    StackNode* topNode;
+    size_t stackSize;
 
-        void push(T item) {
-            Node<T>* newNode = new Node<T>;
-            newNode->value = item;
-            newNode->next = this.top;
-            this.top = newNode;
-            this.size++;
-        }
+public:
+    DStack()
+        : topNode(nullptr), stackSize(0) {}
 
-        T pop() {
-            if (this.top == nullptr)
-                throw std::runtime
+    DStack(const DStack&) = delete;
+    DStack& operator=(const DStack&) = delete;
+
+    ~DStack() {
+        clear();
+    }
+
+    void clear() {
+        while (!empty()) {
+            pop();
         }
+    }
+
+    void push(const T& item) {
+        StackNode* node = new StackNode{item, topNode};
+        topNode = node;
+        stackSize++;
+    }
+
+    T pop() {
+        if (topNode == nullptr) {
+            throw std::out_of_range("Stack is empty");
+        }
+        StackNode* node = topNode;
+        T value = node->value;
+        topNode = node->next;
+        delete node;
+        stackSize--;
+        return value;
+    }
+
+    const T& top() const {
+        if (topNode == nullptr) {
+            throw std::out_of_range("Stack is empty");
+        }
+        return topNode->value;
+    }
+
+    bool empty() const {
+        return stackSize == 0;
+    }
+
+    size_t getSize() const {
+        return stackSize;
+    }
 };
