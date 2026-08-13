@@ -31,12 +31,12 @@ class DArray {
         size_t getSize() const { return this->size; }
 
         T& operator[](size_t index) {
-            if (index >= this->size) throw std::out_of_range("Index out of range");
+            if (index >= this->size) throw std::out_of_range("Índice inalcançável");
             return this->data[index];
         }
 
         const T& operator[](size_t index) const {
-            if (index >= this->size) throw std::out_of_range("Index out of range");
+            if (index >= this->size) throw std::out_of_range("Índice inalcançável");
             return this->data[index];
         }
 
@@ -69,7 +69,7 @@ class DArray {
         bool empty() const { return this->size == 0; }
 
         T& back() {
-            if (this->size == 0) throw std::out_of_range("Array is empty");
+            if (this->size == 0) throw std::out_of_range("Array vazio");
             return this->data[this->size - 1];
         }
 
@@ -79,7 +79,7 @@ class DArray {
         const T* end() const { return this->data + this->size; }
 
         void removeAt(size_t index) {
-            if (index >= this->size) throw std::out_of_range("Index out of range");
+            if (index >= this->size) throw std::out_of_range("Índice inalcançável");
             for (size_t i = index; i + 1 < this->size; i++) {
                 this->data[i] = this->data[i + 1];
             }

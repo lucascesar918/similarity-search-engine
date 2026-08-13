@@ -44,7 +44,7 @@ public:
     }
 
     T dequeue() {
-        if (empty()) throw std::out_of_range("Queue is empty");
+        if (empty()) throw std::out_of_range("Fila vazia");
         Node* node = head;
         T value = node->value;
         head = node->next;
@@ -55,7 +55,7 @@ public:
     }
 
     const T& front() const {
-        if (empty()) throw std::out_of_range("Queue is empty");
+        if (empty()) throw std::out_of_range("Fila vazia");
         return head->value;
     }
 

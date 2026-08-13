@@ -5,7 +5,6 @@
 #include "darray.hpp"
 #include "htable.hpp"
 #include "queue.hpp"
-#include "dstack.hpp"
 #include "sparse_list.hpp"
 #include "bst.hpp"
 
@@ -32,7 +31,6 @@ class Engine {
         HTable<std::string, size_t> dictionary;
         DArray<std::string> reverseDictionary;
         DQueue<std::string> fileQueue;
-        DStack<std::string> history;
         DArray<Document> documents;
 
         size_t getTermId(const std::string& token);

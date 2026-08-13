@@ -7,7 +7,7 @@
 #include <string>
 
 Engine::Engine()
-    : dataPath("data/"), totalDocs(0), dictionary(32), reverseDictionary(), fileQueue(), history(), documents() {
+    : dataPath("data/"), totalDocs(0), dictionary(32), reverseDictionary(), fileQueue(), documents() {
 }
 
 size_t Engine::getTermId(const std::string& token) {
@@ -38,7 +38,6 @@ void Engine::loadData() {
     totalDocs = 0;
     dictionary = HTable<std::string, size_t>(32);
     reverseDictionary.clear();
-    history.clear();
     fileQueue.clear();
 
     if (!fs::exists(dataPath) || !fs::is_directory(dataPath)) {
@@ -66,14 +65,7 @@ void Engine::loadData() {
             content += '\n';
         }
 
-        history.push(content);
         DArray<std::string> tokens = ETL::tokenize(content);
-        std::string tokenList;
-        for (size_t i = 0; i < tokens.getSize(); i++) {
-            if (i > 0) tokenList += ' ';
-            tokenList += tokens[i];
-        }
-        history.push(tokenList);
 
         indexDocument(path, tokens);
         totalDocs++;
@@ -121,7 +113,7 @@ void Engine::search(const std::string& query) {
         return;
     }
 
-    for (size_t i = 0; i < std::min<size_t>(ordered.getSize(), 10); i++) {
+    for (size_t i = 0; i < ordered.getSize(); i++) {
         const SearchResult& result = ordered[i];
         std::cout << "  " << (i + 1) << ". " << documents[result.documentIndex].path << " (score=" << result.score << ")" << std::endl;
     }

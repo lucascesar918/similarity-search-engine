@@ -38,7 +38,7 @@ public:
 
     T pop() {
         if (topNode == nullptr) {
-            throw std::out_of_range("Stack is empty");
+            throw std::out_of_range("Pilha vazia");
         }
         StackNode* node = topNode;
         T value = node->value;
@@ -50,7 +50,7 @@ public:
 
     const T& top() const {
         if (topNode == nullptr) {
-            throw std::out_of_range("Stack is empty");
+            throw std::out_of_range("Pilha vazia");
         }
         return topNode->value;
     }
